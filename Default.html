@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="knockout-3.4.2.js"></script>
+    <script src="jquery-3.2.1.js"></script>
+    <link href="style.css" rel="stylesheet" />
+</head>
+<body>
+    <input type="text" class="edit" placeholder="Enter Header Name" data-bind="value: header" />&nbsp;
+    <button class="button addButton" data-bind="click:$root.addHeader">Add Header</button>
+    
+    <table class="dataGrid">
+        <thead>
+            <tr>
+                <th class="headRow headColumn">No</th>
+                <!-- ko foreach: Headers-->
+                <th class="headRow headColumn" data-bind="text: ($index() + 1) + ' - ' + $data.title"></th>
+                <!-- /ko -->
+                <th class="headRow tools"></th>
+
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: Items">
+            <tr class="row" >
+                <td class="rowItem" data-bind="text: ($index() + 1)"></td>
+                <!-- ko foreach: $data-->
+                <td class="rowItem">
+                    <input type="text" class="edit" data-bind="value: name.editValue, visible: $root.isItemEditing($data)" />
+                    <label class="read" data-bind="text: name, visible: !$root.isItemEditing($data)"></label>
+                </td>
+                <!-- /ko -->
+
+                <td class="tools">
+                    <a class="button toolButton" href="#" data-bind="click: $root.editItem.bind($root), visible: !$root.isItemEditing($data)">Edit</a>
+                    <a class="button toolButton" href="#" data-bind="click: $root.removeItem.bind($root), visible: !$root.isItemEditing($data)">Remove</a>
+                    <a class="button toolButton" href="#" data-bind="click: $root.applyItem.bind($root), visible: $root.isItemEditing($data)">Apply</a>
+                    <a class="button toolButton" href="#" data-bind="click: $root.cancelEdit.bind($root), visible: $root.isItemEditing($data)">Cancel</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="button addButton" data-bind="click:$root.addRow">Add Row</button>
+
+    <script type="text/javascript">
+
+        /*----------------------------------------------------------------------*/
+        /* Observable Extention for Editing
+        /*----------------------------------------------------------------------*/
+        ko.extenders.editable = function (target, option) {
+            if (Array.isArray(target()))
+                target.editValue = ko.observableArray(target().slice());
+            else
+                target.editValue = ko.observable(target());
+        };
+
+        ko.observable.fn.beginEdit = function (transaction) {
+            var self = this;
+            var commitSubscription,
+                rollbackSubscription;
+
+            self.dispose = function () {
+                // kill this subscriptions
+                commitSubscription.dispose();
+                rollbackSubscription.dispose();
+            };
+
+            self.commit = function () {
+                // update the actual value with the edit value
+                self(self.editValue());
+
+                // dispose the subscriptions
+                self.dispose();
+            };
+
+            self.rollback = function () {
+                // rollback the edit value
+                self.editValue(self());
+
+                // dispose the subscriptions
+                self.dispose();
+            };
+
+            //  subscribe to the transation commit and reject calls
+            commitSubscription = transaction.subscribe(self.commit,
+                self,
+                "commit");
+
+            rollbackSubscription = transaction.subscribe(self.rollback,
+                self,
+                "rollback");
+
+            return self;
+        }
+
+        /*----------------------------------------------------------------------*/
+        /* Item Model
+        /*----------------------------------------------------------------------*/
+
+        function Item(name) {
+            var self = this;
+            self.name = ko.observable(name).extend({ editable: true });
+
+        };
+
+        Item.prototype.beginEdit = function (transaction) {
+            this.name.beginEdit(transaction);
+        }
+
+        /*----------------------------------------------------------------------*/
+        /* View Model
+        /*----------------------------------------------------------------------*/
+        var GridViewModel = function () {
+            var self = this;
+            header = ko.observable();
+            self.Headers = ko.observableArray([]);
+            self.Items = ko.observableArray([]);
+            self.editingItem = ko.observable(null);
+
+            //  create the transaction for commit and reject
+            self.editTransaction = new ko.subscribable();
+
+            //  helper
+            self.isItemEditing = function (item) {
+                var answer = false;
+                if (self.editingItem() != null) {
+                    if (!Array.isArray(item)) {
+                        for (var i = 0; i < self.editingItem().length; i++) {
+                            if (self.editingItem()[i] == item) {
+                                answer = true;
+                            }
+                        }
+                    } else if (self.editingItem() == item) {
+                        answer = true;
+                    }
+                }
+                return answer;
+            };
+
+            self.addHeader = function () {
+                self.Headers.push({ title: header() });
+            };
+
+
+            self.addRow = function () {
+                var cells = [];
+                for (var i = 0; i < self.Headers().length; i++) {
+                    cells[i] = new Item("enter data");
+                }
+                self.Items.push(cells);
+
+                //  begin editing the new item
+                self.editItem(cells);
+            };
+
+            self.removeItem = function (item) {
+                self.Items.remove(item);
+            };
+
+            self.editItem = function (item) {
+                // start the transaction
+                item.forEach(function (cell) {
+                    cell.beginEdit(self.editTransaction);
+                });
+                // show the edit fields
+                self.editingItem(item);
+            };
+
+            self.applyItem = function (item) {
+                item.forEach(function (cell) {
+                    //  commit the edit transaction
+                    self.editTransaction.notifySubscribers(cell, "commit");
+                });
+
+                //  hides the edit fields
+                self.editingItem(null);
+            };
+
+            self.cancelEdit = function (item) {
+                item.forEach(function (cell) {
+                    //  reject the edit transaction
+                    self.editTransaction.notifySubscribers(cell, "rollback");
+                });
+
+                //  hides the edit fields
+                self.editingItem(null);
+            };
+        };
+
+        $(document).ready(function () {
+            var gridView = new GridViewModel();
+            ko.applyBindings(gridView);
+        });
+
+
+    </script>
+</body>
+</html>

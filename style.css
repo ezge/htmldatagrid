@@ -1,0 +1,103 @@
+﻿.editHeader {
+    /* structur */
+    display: block;
+    width: 150px;
+    padding: 5px;
+    margin-top: 20px;
+    margin-left: 5px;
+    font-family: Verdana;
+}
+
+/* Grid */
+
+.dataGrid {
+    /* structure */
+    border-collapse: collapse;
+    width: 800px;
+    margin: 20px 20px 50px 5px;
+    padding: 10px;
+    font-family: Verdana;
+    text-align: left;
+}
+
+
+    .dataGrid .headRow {
+        /* structure */
+        padding: 10px;
+        height: 10px;
+        font-size: 15px;
+    }
+
+    .dataGrid .headColumn {
+        /* skin */
+        color: White;
+        background-color: #888;
+    }
+
+        .dataGrid .headColumn:first-child {
+            width: 5px;
+        }
+
+
+    .dataGrid .row:nth-child(even) {
+        /* skin */
+        background-color: #eee;
+    }
+
+    .dataGrid .rowItem {
+        /* structure */
+        padding: 10px;
+        text-align: left;
+        font-size: 15px;
+    }
+
+        .dataGrid .rowItem .read {
+            /* structure */
+            display: block;
+            width: 150px;
+        }
+
+
+    .dataGrid .tools {
+        /* structure */
+        width: 250px;
+        /* skin */
+        background-color: #ffffff;
+        padding: 5px;
+    }
+
+/* Buttons */
+
+.button {
+    /* structure */
+    padding: 8px 12px;
+    font-size: 15px;
+    /* skin */
+    border: 1px solid gainsboro;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.addButton {
+    /* structure */
+    margin-left: 5px;
+    /* skin */
+    background-color: #3498db;
+    background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+    background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+    background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+    background-image: -o-linear-gradient(top, #3498db, #2980b9);
+    background-image: linear-gradient(to bottom, #3498db, #2980b9);
+    color: White;
+}
+
+.toolButton {
+    /* skin */
+    background-color: #F9F9F9;
+    background-image: -webkit-linear-gradient(top, white, #F9F9F9);
+    background-image: -moz-linear-gradient(top, white, #F9F9F9);
+    background-image: -ms-linear-gradient(top, white, #F9F9F9);
+    background-image: -o-linear-gradient(top, white, #F9F9F9);
+    background-image: linear-gradient(top, white, #F9F9F9);
+    color: #444;
+}
